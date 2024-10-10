@@ -2,6 +2,12 @@
 #include "time.hpp"
 #include <iostream>
 
+
+
+
+
+
+
 Profiler* Profiler::gProfiler = nullptr;
 
 TimeRecordStart::TimeRecordStart(char const* sectionName, double secondsAtStart): sectionName(sectionName), secondsAtStart(secondsAtStart) {}
@@ -14,11 +20,31 @@ TimeRecordStop::~TimeRecordStop() {}
 ProfilerStats::ProfilerStats(char const* sectionName): sectionName(sectionName), count(0), totalTime(0), minTime(DBL_MAX), maxTime(0), avgTime(0), filename("null"), functionName("null"), lineNumber(0) {}
 ProfilerStats::~ProfilerStats() {}
 
+ProfilerScopeObject::ProfilerScopeObject(char const* sectionName) {
+    Profiler::GetInstance()->EnterSection(sectionName);
+}
+
+ProfilerScopeObject::~ProfilerScopeObject() {
+    Profiler::GetInstance()->ExitSection(sectionName);
+}
+
+
+
+
+
+
 Profiler::Profiler() {
     gProfiler = this;
 
-    startTimes.reserve(100);
-    elapsedTimes.reserve(1000000);
+    // startTimes.reserve(100);
+    // elapsedTimes.reserve(1000000);
+}
+
+Profiler* Profiler::GetInstance() {
+    if (gProfiler == nullptr) {
+        gProfiler = new Profiler();
+    }
+    return gProfiler;
 }
 
 Profiler::~Profiler() {
@@ -49,11 +75,34 @@ void Profiler::ExitSection(char const* sectionName) {
 
     // Calculate the elapsed time
     double elapsedTime = secondsAtStop - currentSection.secondsAtStart;
-    ReportSectionTime(sectionName, elapsedTime);
+    // ReportSectionTime(sectionName, elapsedTime);
+    elapsedTimes.emplace_back(sectionName, elapsedTime);
+    startTimes.pop_back();
+}
+
+void Profiler::ExitSection(char const* sectionName, int lineNumber, const char* fileName, const char* functionName) {
+    double secondsAtStop = GetCurrentTimeSeconds();
+
+    // Get the last start time
+    TimeRecordStart const& currentSection = startTimes.back();
+
+    #if defined( DEBUG_PROFIER )
+        // Verify the stack isn't empty
+
+        // Verify the currentSection matches the sectionName.
+    #endif
+
+    // Calculate the elapsed time
+    double elapsedTime = secondsAtStop - currentSection.secondsAtStart;
+    ReportSectionTime(sectionName, elapsedTime, lineNumber, fileName, functionName);
     // elapsedTimes.emplace_back(sectionName, elapsedTime);
     startTimes.pop_back();
 }
 
 void Profiler::ReportSectionTime(char const* sectionName, double elapsedTime) {
     elapsedTimes.emplace_back(sectionName, elapsedTime);
+}
+
+void Profiler::ReportSectionTime(char const* sectionName, double elapsedTime, int lineNumber, const char* fileName, const char* functionName) {
+    elapsedTimes.emplace_back(sectionName, elapsedTime, lineNumber, fileName, functionName);
 }
