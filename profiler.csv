@@ -1,8 +1,7 @@
-Section Name,Count,Total Time,Min Time,Max Time,Avg Time,Filename,Function Name,Line Number
-Trig Speed Test,1,0.045195,0.045195,0.045195,0.045195,./Code/main.cpp,Test2,75
-Random Angle Generation,1,0.0010177,0.0010177,0.0010177,0.0010177,./Code/main.cpp,Test2,58
-Total Cos and Sin Compute,1,0.0441329,0.0441329,0.0441329,0.0441329,./Code/main.cpp,Test2,74
-Cos and Sin Compute,100000,0.0102523,0,3.59e-05,1.02523e-07,./Code/main.cpp,Test2,72
-Test 2 Speed Test,1,0.0467076,0.0467076,0.0467076,0.0467076,null,null,0
-Test 3 - interleave A,1,0.003763,0.003763,0.003763,0.003763,./Code/main.cpp,Test3,91
-Test 3 - interleave B,1,0.0036274,0.0036274,0.0036274,0.0036274,./Code/main.cpp,Test3,96
+Section Name,Count,Total Time,Min Time,Max Time,Avg Time,Filename,Function Name,Line Number,Trig Speed Test,1,0.0457047,0.0457047,0.0457047,0.0457047,./Code/main.cpp,Test2,75,
+Random Angle Generation,1,0.0009894,0.0009894,0.0009894,0.0009894,./Code/main.cpp,Test2,58,
+Total Cos and Sin Compute,1,0.0446861,0.0446861,0.0446861,0.0446861,./Code/main.cpp,Test2,74,
+Cos and Sin Compute,100000,0.0101783,0,2.24e-05,1.01783e-07,./Code/main.cpp,Test2,72,
+Test 2 Speed Test,1,0.0469427,0.0469427,0.0469427,0.0469427,null,null,0,
+Test 3 - interleave A,1,0.0037609,0.0037609,0.0037609,0.0037609,./Code/main.cpp,Test3,91,
+Test 3 - interleave B,1,0.0034052,0.0034052,0.0034052,0.0034052,./Code/main.cpp,Test3,96,

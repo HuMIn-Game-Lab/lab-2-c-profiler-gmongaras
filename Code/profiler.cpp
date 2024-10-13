@@ -18,7 +18,7 @@ TimeRecordStop::TimeRecordStop(char const* sectionName, double elapsedTime): sec
 TimeRecordStop::TimeRecordStop(char const* sectionName, double elapsedTime, int lineNumber, const char* fileName, const char* functionName): sectionName(sectionName), elapsedTime(elapsedTime), lineNumber(lineNumber), fileName(fileName), functionName(functionName) {}
 TimeRecordStop::~TimeRecordStop() {}
 
-ProfilerStats::ProfilerStats(char const* sectionName): sectionName(sectionName), count(0), totalTime(0), minTime(DBL_MAX), maxTime(0), avgTime(0), filename("null"), functionName("null"), lineNumber(0) {}
+ProfilerStats::ProfilerStats(char const* sectionName): sectionName(sectionName), count(0), totalTime(0), minTime(DBL_MAX), maxTime(0), avgTime(0), filename("null"), functionName("null"), lineNumber(0), timeline(std::vector<double>()) {}
 ProfilerStats::~ProfilerStats() {}
 
 ProfilerScopeObject::ProfilerScopeObject(char const* sectionName) {
@@ -113,6 +113,9 @@ void Profiler::calculateStats() {
     }
     stats.clear();
 
+    // Cumulative time for each section
+    std::map<char const*, std::vector<double>> cumulativeTime;
+
     // Calculate the stats
     for (auto& elapsed : elapsedTimes) {
         // Does the map contain the sectionName?
@@ -134,6 +137,22 @@ void Profiler::calculateStats() {
         stat->filename = elapsed.fileName;
         stat->functionName = elapsed.functionName;
         stat->lineNumber = elapsed.lineNumber;
+
+        // Add the time to the timeline
+        if (cumulativeTime.find(elapsed.sectionName) == cumulativeTime.end()) {
+            // If it doesn't exist, add the section name and current time
+            cumulativeTime[elapsed.sectionName] = std::vector<double>();
+            cumulativeTime[elapsed.sectionName].push_back(elapsed.elapsedTime);
+        } else {
+            // If it does exist, add the current time to the timeline
+            cumulativeTime[elapsed.sectionName].push_back(cumulativeTime[elapsed.sectionName].back() + elapsed.elapsedTime);
+        }
+    }
+
+    // Save all the cumulative times
+    for (auto& stat : stats) {
+        ProfilerStats* stat_ = stat.second;
+        stat_->timeline = cumulativeTime[stat_->sectionName];
     }
 
     // Calculate the average times
@@ -180,7 +199,8 @@ void Profiler::saveStatsToCSV(const char* filename) {
     file << "Avg Time,";
     file << "Filename,";
     file << "Function Name,";
-    file << "Line Number\n";
+    file << "Line Number,";
+
 
     // Write the stats to the file
     for (auto& stat : stats) {
@@ -193,7 +213,8 @@ void Profiler::saveStatsToCSV(const char* filename) {
         file << stat_->avgTime << ",";
         file << stat_->filename << ",";
         file << stat_->functionName << ",";
-        file << stat_->lineNumber << "\n";
+        file << stat_->lineNumber << ",";
+        file << "\n";
     }
 
     // Close the file
@@ -226,7 +247,15 @@ void Profiler::saveStatsToJSON(const char* filename) {
         file << "      \"Avg Time\": " << stat_->avgTime << ",\n";
         file << "      \"Filename\": \"" << stat_->filename << "\",\n";
         file << "      \"Function Name\": \"" << stat_->functionName << "\",\n";
-        file << "      \"Line Number\": " << stat_->lineNumber << "\n";
+        file << "      \"Line Number\": " << stat_->lineNumber << ",\n";
+        file << "      \"Timeline\": [";
+        for (int i = 0; i < stat_->timeline.size(); i++) {
+            file << stat_->timeline[i];
+            if (i < stat_->timeline.size() - 1) {
+                file << ", ";
+            }
+        }
+        file << "]\n";
         file << "    }";
         count++;
         if (count < stats.size()) {

@@ -50,6 +50,7 @@ public:
     const char* filename;
     const char* functionName;
     int lineNumber;
+    std::vector<double> timeline;
 };
 
 class Profiler {
