@@ -162,6 +162,16 @@ void Profiler::calculateStats() {
     }
 }
 
+// Calculate statistics for a specific section and return them
+ProfilerStats Profiler::calculateStats(char const* sectionName) {
+    // Calculate the stats
+    calculateStats();
+
+    // Return the stats for the section
+    return *stats.at(sectionName);
+}
+
+
 void Profiler::printStats() {
     // Calculate the stats
     calculateStats();

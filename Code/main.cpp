@@ -113,6 +113,9 @@ int main(int argc, char** argv) {
     // Print out the statistics
     profiler->printStats();
 
+    // Get statistics for the `Test 2 Speed Test` test
+    ProfilerStats stats = profiler->calculateStats("Test 2 Speed Test");
+
     // Save to CSV
     profiler->saveStatsToCSV("profiler.csv");
 

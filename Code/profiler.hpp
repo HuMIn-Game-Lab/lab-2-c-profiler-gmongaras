@@ -6,6 +6,7 @@
 
 #define PROFILER_ENTER(sectionName) Profiler::GetInstance()->EnterSection(sectionName);
 #define PROFILER_EXIT(sectionName) Profiler::GetInstance()->ExitSection(sectionName, __LINE__, __FILE__, __FUNCTION__);
+#define PROFILER_STATISTICS(sectionName) Profiler::GetInstance()->calculateStats(sectionName);
 
 class ProfilerScopeObject {
 public:
@@ -61,6 +62,7 @@ public:
     void ExitSection(char const* sectionName);
     void ExitSection(char const* sectionName, int lineNumber, const char* fileName, const char* functionName);
     void calculateStats();
+    ProfilerStats calculateStats(char const* sectionName);
     void printStats();
 
     static Profiler* gProfiler;
