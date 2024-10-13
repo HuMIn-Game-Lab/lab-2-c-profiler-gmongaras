@@ -61,17 +61,23 @@ public:
     void ExitSection(char const* sectionName, int lineNumber, const char* fileName, const char* functionName);
     void calculateStats();
     void printStats();
-    void printStatsToCSV(const char* filename);
 
     static Profiler* gProfiler;
     // Singleton. Static exists at the class level.
     static Profiler* GetInstance();
+
+    // Used to save the statistics to a CSV file
+    void saveStatsToCSV(const char* filename);
+    // Used to save the statistics to a JSON file
+    void saveStatsToJSON(const char* filename);
 
 private:
     Profiler();
     void ReportSectionTime(char const* sectionName, double elapsedTime);
     void ReportSectionTime(char const* sectionName, double elapsedTime, int lineNumber, const char* fileName, const char* functionName);
     std::map<char const*, ProfilerStats*> stats;
-    std::vector<TimeRecordStart> startTimes;
+    // std::vector<TimeRecordStart> startTimes;
     std::vector<TimeRecordStop> elapsedTimes;
+    // Map from section name to start time
+    std::map<char const*, std::vector<TimeRecordStart>> startTimes;
 };

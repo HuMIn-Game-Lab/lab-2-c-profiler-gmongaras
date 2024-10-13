@@ -1,6 +1,7 @@
 #include "profiler.hpp"
 #include "time.hpp"
 #include <iostream>
+#include <fstream>
 
 
 
@@ -22,6 +23,7 @@ ProfilerStats::~ProfilerStats() {}
 
 ProfilerScopeObject::ProfilerScopeObject(char const* sectionName) {
     Profiler::GetInstance()->EnterSection(sectionName);
+    this->sectionName = sectionName;
 }
 
 ProfilerScopeObject::~ProfilerScopeObject() {
@@ -54,9 +56,14 @@ Profiler::~Profiler() {
 }
 
 void Profiler::EnterSection(char const* sectionName) {
+    // Does the map contain the sectionName?
+    if (startTimes.find(sectionName) == startTimes.end()) {
+        startTimes[sectionName] = std::vector<TimeRecordStart>();
+    }
+
     double secondsAtStart = GetCurrentTimeSeconds();
 
-    startTimes.emplace_back(sectionName, secondsAtStart);
+    startTimes.at(sectionName).emplace_back(sectionName, secondsAtStart);
     // TimeRecordStart* start = new TimeRecordStart(sectionName, secondsAtStart);
     // startTimes.push_back(start);
 }
@@ -65,7 +72,7 @@ void Profiler::ExitSection(char const* sectionName) {
     double secondsAtStop = GetCurrentTimeSeconds();
 
     // Get the last start time
-    TimeRecordStart const& currentSection = startTimes.back();
+    TimeRecordStart const& currentSection = startTimes.at(sectionName).back();
 
     #if defined( DEBUG_PROFIER )
         // Verify the stack isn't empty
@@ -77,14 +84,14 @@ void Profiler::ExitSection(char const* sectionName) {
     double elapsedTime = secondsAtStop - currentSection.secondsAtStart;
     // ReportSectionTime(sectionName, elapsedTime);
     elapsedTimes.emplace_back(sectionName, elapsedTime);
-    startTimes.pop_back();
+    startTimes.at(sectionName).pop_back();
 }
 
 void Profiler::ExitSection(char const* sectionName, int lineNumber, const char* fileName, const char* functionName) {
     double secondsAtStop = GetCurrentTimeSeconds();
 
     // Get the last start time
-    TimeRecordStart const& currentSection = startTimes.back();
+    TimeRecordStart const& currentSection = startTimes.at(sectionName).back();
 
     #if defined( DEBUG_PROFIER )
         // Verify the stack isn't empty
@@ -96,7 +103,142 @@ void Profiler::ExitSection(char const* sectionName, int lineNumber, const char* 
     double elapsedTime = secondsAtStop - currentSection.secondsAtStart;
     ReportSectionTime(sectionName, elapsedTime, lineNumber, fileName, functionName);
     // elapsedTimes.emplace_back(sectionName, elapsedTime);
-    startTimes.pop_back();
+    startTimes.at(sectionName).pop_back();
+}
+
+void Profiler::calculateStats() {
+    // Clear the stats
+    for (auto& stat : stats) {
+        delete stat.second;
+    }
+    stats.clear();
+
+    // Calculate the stats
+    for (auto& elapsed : elapsedTimes) {
+        // Does the map contain the sectionName?
+        if (stats.find(elapsed.sectionName) == stats.end()) {
+            stats[elapsed.sectionName] = new ProfilerStats(elapsed.sectionName);
+        }
+
+        // Stats for this section name
+        ProfilerStats* stat = stats.at(elapsed.sectionName);
+        // Total number of times this section was called
+        stat->count++;
+        // Total time of all calls to this section
+        stat->totalTime += elapsed.elapsedTime;
+        // Min and max time of this section
+        stat->minTime = std::min(stat->minTime, elapsed.elapsedTime);
+        stat->maxTime = std::max(stat->maxTime, elapsed.elapsedTime);
+
+        // Filename for each section
+        stat->filename = elapsed.fileName;
+        stat->functionName = elapsed.functionName;
+        stat->lineNumber = elapsed.lineNumber;
+    }
+
+    // Calculate the average times
+    for (auto& stat : stats) {
+        ProfilerStats* stat_ = stat.second;
+        stat_->avgTime = stat_->totalTime / stat_->count;
+    }
+}
+
+void Profiler::printStats() {
+    // Calculate the stats
+    calculateStats();
+
+    // Print out the stats
+    for (auto& stat : stats) {
+        ProfilerStats* stat_ = stat.second;
+        std::cout << "Section Name: " << stat_->sectionName << "\n";
+        std::cout << "Count: " << stat_->count << "\n";
+        std::cout << "Total Time: " << stat_->totalTime << "\n";
+        std::cout << "Min Time: " << stat_->minTime << "\n";
+        std::cout << "Max Time: " << stat_->maxTime << "\n";
+        std::cout << "Avg Time: " << stat_->avgTime << "\n";
+        std::cout << "Filename: " << stat_->filename << "\n";
+        std::cout << "Function Name: " << stat_->functionName << "\n";
+        std::cout << "Line Number: " << stat_->lineNumber << "\n";
+        std::cout << "\n";
+    }
+}
+
+void Profiler::saveStatsToCSV(const char* filename) {
+    // Calculate the stats
+    calculateStats();
+
+    // Open the file
+    std::ofstream file;
+    file.open(filename);
+
+    // Header
+    file << "Section Name,";
+    file << "Count,";
+    file << "Total Time,";
+    file << "Min Time,";
+    file << "Max Time,";
+    file << "Avg Time,";
+    file << "Filename,";
+    file << "Function Name,";
+    file << "Line Number\n";
+
+    // Write the stats to the file
+    for (auto& stat : stats) {
+        ProfilerStats* stat_ = stat.second;
+        file << stat_->sectionName << ",";
+        file << stat_->count << ",";
+        file << stat_->totalTime << ",";
+        file << stat_->minTime << ",";
+        file << stat_->maxTime << ",";
+        file << stat_->avgTime << ",";
+        file << stat_->filename << ",";
+        file << stat_->functionName << ",";
+        file << stat_->lineNumber << "\n";
+    }
+
+    // Close the file
+    file.close();
+}
+
+void Profiler::saveStatsToJSON(const char* filename) {
+    // Calculate the stats
+    calculateStats();
+
+    // Open the file
+    std::ofstream file;
+    file.open(filename);
+
+    // Header
+    file << "{\n";
+    file << "  \"profiler\": [\n";
+
+    // Write the stats to the file
+    // Skip the last comma
+    int count = 0;
+    for (auto& stat : stats) {
+        ProfilerStats* stat_ = stat.second;
+        file << "    {\n";
+        file << "      \"Section Name\": \"" << stat_->sectionName << "\",\n";
+        file << "      \"Count\": " << stat_->count << ",\n";
+        file << "      \"Total Time\": " << stat_->totalTime << ",\n";
+        file << "      \"Min Time\": " << stat_->minTime << ",\n";
+        file << "      \"Max Time\": " << stat_->maxTime << ",\n";
+        file << "      \"Avg Time\": " << stat_->avgTime << ",\n";
+        file << "      \"Filename\": \"" << stat_->filename << "\",\n";
+        file << "      \"Function Name\": \"" << stat_->functionName << "\",\n";
+        file << "      \"Line Number\": " << stat_->lineNumber << "\n";
+        file << "    }";
+        count++;
+        if (count < stats.size()) {
+            file << ",";
+        }
+        file << "\n";
+    }
+
+    // Close the file
+    file << "  ]\n";
+    file << "}\n";
+    file.close();
 }
 
 void Profiler::ReportSectionTime(char const* sectionName, double elapsedTime) {

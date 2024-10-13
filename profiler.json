@@ -1,0 +1,81 @@
+{
+  "profiler": [
+    {
+      "Section Name": "Trig Speed Test",
+      "Count": 1,
+      "Total Time": 0.045195,
+      "Min Time": 0.045195,
+      "Max Time": 0.045195,
+      "Avg Time": 0.045195,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test2",
+      "Line Number": 75
+    },
+    {
+      "Section Name": "Random Angle Generation",
+      "Count": 1,
+      "Total Time": 0.0010177,
+      "Min Time": 0.0010177,
+      "Max Time": 0.0010177,
+      "Avg Time": 0.0010177,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test2",
+      "Line Number": 58
+    },
+    {
+      "Section Name": "Total Cos and Sin Compute",
+      "Count": 1,
+      "Total Time": 0.0441329,
+      "Min Time": 0.0441329,
+      "Max Time": 0.0441329,
+      "Avg Time": 0.0441329,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test2",
+      "Line Number": 74
+    },
+    {
+      "Section Name": "Cos and Sin Compute",
+      "Count": 100000,
+      "Total Time": 0.0102523,
+      "Min Time": 0,
+      "Max Time": 3.59e-05,
+      "Avg Time": 1.02523e-07,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test2",
+      "Line Number": 72
+    },
+    {
+      "Section Name": "Test 2 Speed Test",
+      "Count": 1,
+      "Total Time": 0.0467076,
+      "Min Time": 0.0467076,
+      "Max Time": 0.0467076,
+      "Avg Time": 0.0467076,
+      "Filename": "null",
+      "Function Name": "null",
+      "Line Number": 0
+    },
+    {
+      "Section Name": "Test 3 - interleave A",
+      "Count": 1,
+      "Total Time": 0.003763,
+      "Min Time": 0.003763,
+      "Max Time": 0.003763,
+      "Avg Time": 0.003763,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test3",
+      "Line Number": 91
+    },
+    {
+      "Section Name": "Test 3 - interleave B",
+      "Count": 1,
+      "Total Time": 0.0036274,
+      "Min Time": 0.0036274,
+      "Max Time": 0.0036274,
+      "Avg Time": 0.0036274,
+      "Filename": "./Code/main.cpp",
+      "Function Name": "Test3",
+      "Line Number": 96
+    }
+  ]
+}

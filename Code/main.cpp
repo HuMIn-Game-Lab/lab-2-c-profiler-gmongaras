@@ -77,15 +77,47 @@ void Test2() {
     std::cout << "Biggest cos+sin = " << biggestSoFar << std::endl;
 }
 
+void Test3() {
+    PROFILER_ENTER("Test 3 - interleave A"); // Enter section A
+    int a = 0;
+    for (int i = 0; i < 1000000; i++) {
+        a += i;
+    }
+    PROFILER_ENTER("Test 3 - interleave B"); // Enter section B
+    int b = 0;
+    for (int i = 0; i < 1000000; i++) {
+        b += i;
+    }
+    PROFILER_EXIT("Test 3 - interleave A"); // Exit section A
+    int c = 0;
+    for (int i = 0; i < 1000000; i++) {
+        c += i;
+    }
+    PROFILER_EXIT("Test 3 - interleave B"); // Exit section B
+}
+
 void RunTest() {
     // Test1();
     Test2();
+    Test3();
 }
 
 int main(int argc, char** argv) {
     profiler = Profiler::GetInstance();
 
     RunTest();
+
+    // Calculate the statistics
+    profiler->calculateStats();
+
+    // Print out the statistics
+    profiler->printStats();
+
+    // Save to CSV
+    profiler->saveStatsToCSV("profiler.csv");
+
+    // Save to JSON
+    profiler->saveStatsToJSON("profiler.json");
 
     delete profiler;
     profiler = nullptr;
