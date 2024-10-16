@@ -192,6 +192,20 @@ void Profiler::printStats() {
     }
 }
 
+void Profiler::reset() {
+    // Clear the stats
+    for (auto& stat : stats) {
+        delete stat.second;
+    }
+    stats.clear();
+
+    // Clear the elapsed times
+    elapsedTimes.clear();
+
+    // Clear the start times
+    startTimes.clear();
+}
+
 void Profiler::saveStatsToCSV(const char* filename) {
     // Calculate the stats
     calculateStats();

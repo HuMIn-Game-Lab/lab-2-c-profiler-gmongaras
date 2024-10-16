@@ -7,11 +7,12 @@ const App = () => {
     const [data, setData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [sectionNames, setSectionNames] = useState([]);
-    const [selectedSection, setSelectedSection] = useState('');
-    const [logTransform, setLogTransform] = useState(false); // State to manage log transform
-    const [sortMetric, setSortMetric] = useState('Avg Time'); // Sort by Average Time by default
-    const [sortOrder, setSortOrder] = useState('asc'); // Sorting order
-    const [filterThreshold, setFilterThreshold] = useState(0); // Filter threshold for time
+    const [selectedSections, setSelectedSections] = useState([]);
+    const [logTransform, setLogTransform] = useState(false);
+    const [sortMetric, setSortMetric] = useState('Avg Time');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filterThreshold, setFilterThreshold] = useState(0);
+    const [showCheckboxes, setShowCheckboxes] = useState(true);  // Manage toggle state for checkboxes
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
@@ -23,60 +24,53 @@ const App = () => {
                 setFilteredData(jsonData);
                 const sections = [...new Set(jsonData.map(d => d['Section Name']))];
                 setSectionNames(sections);
+                setSelectedSections(sections);
             };
             reader.readAsText(file);
         }
     };
 
-    const handleSectionFilter = (event) => {
-        const section = event.target.value;
-        setSelectedSection(section);
-        filterAndSortData(section, sortMetric, sortOrder, filterThreshold);
+    const handleSectionToggle = (section) => {
+        const newSelectedSections = selectedSections.includes(section)
+            ? selectedSections.filter(s => s !== section)
+            : [...selectedSections, section];
+        setSelectedSections(newSelectedSections);
+        filterAndSortData(newSelectedSections, sortMetric, sortOrder, filterThreshold);
     };
 
     const handleLogTransformToggle = (event) => {
-        setLogTransform(event.target.checked); // Toggle log transform on or off
+        setLogTransform(event.target.checked);
     };
 
     const handleSortMetricChange = (event) => {
         const metric = event.target.value;
         setSortMetric(metric);
-        filterAndSortData(selectedSection, metric, sortOrder, filterThreshold);
+        filterAndSortData(selectedSections, metric, sortOrder, filterThreshold);
     };
 
     const handleSortOrderChange = (event) => {
         const order = event.target.value;
         setSortOrder(order);
-        filterAndSortData(selectedSection, sortMetric, order, filterThreshold);
+        filterAndSortData(selectedSections, sortMetric, order, filterThreshold);
     };
 
     const handleFilterThresholdChange = (event) => {
         const threshold = parseFloat(event.target.value);
         setFilterThreshold(threshold);
-        filterAndSortData(selectedSection, sortMetric, sortOrder, threshold);
+        filterAndSortData(selectedSections, sortMetric, sortOrder, threshold);
     };
 
-    const filterAndSortData = (section, metric, order, threshold) => {
-        let filtered = data;
-        if (section) {
-            filtered = filtered.filter(d => d['Section Name'] === section);
-        }
+    const filterAndSortData = (sections, metric, order, threshold) => {
+        let filtered = data.filter(d => sections.includes(d['Section Name']));
 
-        // Apply filtering based on threshold
         filtered = filtered.filter(d => +d[metric] >= threshold);
-
-        // Apply sorting
-        filtered.sort((a, b) => {
-            const valA = +a[metric];
-            const valB = +b[metric];
-            if (order === 'asc') {
-                return valA - valB;
-            } else {
-                return valB - valA;
-            }
-        });
+        filtered.sort((a, b) => (order === 'asc' ? +a[metric] - +b[metric] : +b[metric] - +a[metric]));
 
         setFilteredData(filtered);
+    };
+
+    const toggleCheckboxes = () => {
+        setShowCheckboxes(!showCheckboxes);
     };
 
     return (
@@ -96,15 +90,25 @@ const App = () => {
                 </label>
             </div>
 
-            {/* Filter Section */}
-            <div>
-                <label htmlFor="filterSection">Filter by Section Name:</label>
-                <select id="filterSection" value={selectedSection} onChange={handleSectionFilter}>
-                    <option value="">All Sections</option>
-                    {sectionNames.map((section, index) => (
-                        <option key={index} value={section}>{section}</option>
-                    ))}
-                </select>
+            {/* Toggle Section Checkboxes */}
+            <div className="checkbox-toggle-container">
+                <button onClick={toggleCheckboxes} className="toggle-button">
+                    {showCheckboxes ? '▼ Hide Sections' : '► Show Sections'}
+                </button>
+                {showCheckboxes && (
+                    <div className="section-checkbox-container">
+                        {sectionNames.map((section, index) => (
+                            <label key={index}>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedSections.includes(section)}
+                                    onChange={() => handleSectionToggle(section)}
+                                />
+                                {section}
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Sort Metric */}
@@ -140,20 +144,14 @@ const App = () => {
                 />
             </div>
 
-            {/* Display a message if no data meets the filter */}
-            {data.length > 0 && filteredData.length === 0 ? (
-                <p style={{ color: 'red', textAlign: 'center', fontSize: '1.2em' }}>
-                    No data meets the filter criteria.
-                </p>
-            ) : (
-                <div className="chart-container">
-                    {filteredData.length > 0 && <BarChart data={filteredData} metric="Avg Time" metricLabel="Average Time" logTransform={logTransform} />}
-                    {filteredData.length > 0 && <BarChart data={filteredData} metric="Max Time" metricLabel="Max Time" logTransform={logTransform} />}
-                    {filteredData.length > 0 && <BarChart data={filteredData} metric="Min Time" metricLabel="Min Time" logTransform={logTransform} />}
-                    {filteredData.length > 0 && <BarChart data={filteredData} metric="Total Time" metricLabel="Total Time" logTransform={logTransform} />}
-                    {filteredData.length > 0 && <TimelineChart data={filteredData} />}
-                </div>
-            )}
+            {/* Display Charts */}
+            <div className="chart-container">
+                {filteredData.length > 0 && <BarChart data={filteredData} metric="Avg Time" metricLabel="Average Time" logTransform={logTransform} />}
+                {filteredData.length > 0 && <BarChart data={filteredData} metric="Max Time" metricLabel="Max Time" logTransform={logTransform} />}
+                {filteredData.length > 0 && <BarChart data={filteredData} metric="Min Time" metricLabel="Min Time" logTransform={logTransform} />}
+                {filteredData.length > 0 && <BarChart data={filteredData} metric="Total Time" metricLabel="Total Time" logTransform={logTransform} />}
+                {filteredData.length > 0 && <TimelineChart data={filteredData} />}
+            </div>
         </div>
     );
 };

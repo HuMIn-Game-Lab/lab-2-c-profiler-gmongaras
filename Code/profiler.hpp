@@ -64,6 +64,7 @@ public:
     void calculateStats();
     ProfilerStats calculateStats(char const* sectionName);
     void printStats();
+    void reset();
 
     static Profiler* gProfiler;
     // Singleton. Static exists at the class level.
